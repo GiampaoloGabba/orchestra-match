@@ -41,6 +41,8 @@ flowchart LR
 
 Il sistema supporta anche **inviti diretti** e annunci **"solo su invito"** per casi riservati.
 
+📌 Per i flussi dettagliati, vedi i [Diagrammi di Flusso](./deliverables.md#25-diagrammi-di-flusso)
+
 ---
 
 ## Funzionalità Principali
