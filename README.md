@@ -6,9 +6,13 @@
 
 Orchestra Match è una **piattaforma dedicata** dove:
 
+- L'orchestra gestisce una **lista prioritaria a livelli** dei propri musicisti di riferimento
 - L'orchestra pubblica annunci per posizioni aperte (date, ruolo, compenso, programma)
+- Il sistema **distribuisce l'annuncio in sequenza** ai livelli della lista prioritaria, con timer configurabili per ogni livello
+- Solo dopo aver esaurito la lista, si aprono le **candidature libere**
 - I musicisti si candidano presentando il proprio profilo e disponibilità
 - La piattaforma **supporta la selezione** con filtri e suggerimenti
+- Il sistema traccia i **limiti di ingaggio** per evitare il sovra-utilizzo dei musicisti
 - Una volta scelto il candidato, gestisce **offerta, conferma, notifiche e chiusura evento**
 
 ---
@@ -29,8 +33,11 @@ Orchestra Match è una **piattaforma dedicata** dove:
 
 ```mermaid
 flowchart LR
-  O[Orchestra] -->|Pubblica posizione| JP[Annuncio]
-  JP -->|Notifiche mirate| MFeed[Bacheca Musicisti]
+  O[Orchestra] -->|Gestisce lista prioritaria| PL[Lista a Livelli]
+  O -->|Pubblica posizione| JP[Annuncio]
+  JP -->|Notifica Livello 1 + timer| L1[Priorità 1]
+  L1 -->|Timer scaduto, nessuna risposta| L2[Priorità 2...N]
+  L2 -->|Lista esaurita| MFeed[Candidature Aperte]
   MU[Musicista] -->|Si candida| APP[Candidatura]
   APP -->|Filtri e valutazione| SEL[Selezione]
   SEL -->|Invia Offerta| OFF[Offerta]
@@ -49,6 +56,10 @@ Il sistema supporta anche **inviti diretti** e annunci **"solo su invito"** per 
 
 ### Per Orchestre
 
+- **Lista prioritaria a livelli** di musicisti di riferimento, obbligatoria per la distribuzione degli annunci
+- **Import massivo da Excel**: download template, compilazione e upload per caricare musicisti nella lista
+- **Distribuzione sequenziale**: notifiche ai musicisti per livello di priorità con timer configurabile per ogni livello; le candidature aperte si attivano solo dopo l'esaurimento della lista
+- **Monitoraggio limiti di ingaggio**: tracciamento dei giorni di ingaggio per musicista (es. max 90 giorni su 365), con indicatore visivo per musicisti a rischio sovra-utilizzo
 - Creazione annunci con procedura guidata (modelli riutilizzabili in Versione 2)
 - Gestione candidati: lista ristretta, note interne, stato di avanzamento
 - Offerta con scadenza e conferma automatica
@@ -82,6 +93,9 @@ Il sistema supporta anche **inviti diretti** e annunci **"solo su invito"** per 
 ## Piano di Sviluppo
 
 ### Prima Versione
+- **Liste prioritarie a livelli** con distribuzione sequenziale e timer
+- **Import massivo musicisti da template Excel**
+- **Tracciamento limiti di ingaggio** (giorni per musicista/orchestra su finestra temporale)
 - Filtri manuali per selezionare i candidati
 - Gestione completa di offerte e ingaggi
 - Proposte dirette (senza annuncio pubblico)

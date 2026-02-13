@@ -58,6 +58,8 @@ Mettere in contatto **orchestre/direttori** con **musicisti** per coprire posizi
 * **Notification + NotificationPreference**
 * **AuditLog (eventi tracciati)**
 * **CalendarEvent / Availability** (disponibilità e blocchi)
+* **PriorityRoster (Lista Prioritaria)** + **PriorityRosterTier (Livello)** + **PriorityRosterMember (Musicista in lista)**
+* **EngagementQuota (Limite chiamate)** — tracciamento giorni di ingaggio per coppia orchestra/musicista
 
 ---
 
@@ -136,6 +138,58 @@ Mettere in contatto **orchestre/direttori** con **musicisti** per coprire posizi
 
 ---
 
+## 3.3 Lista Prioritaria (Priority Roster) — struttura
+
+Ogni orchestra **deve** gestire una lista prioritaria di musicisti prima di poter distribuire un annuncio. La lista è organizzata a **livelli/tier** (Livello 1 = prima scelta, Livello 2 = seconda scelta, ecc.).
+
+**Struttura**
+
+* **PriorityRoster**: contenitore per orchestra, uno per strumento/ruolo (o generico)
+* **PriorityRosterTier**: livello dentro il roster (1, 2, 3, …) con configurazione timer
+* **PriorityRosterMember**: musicista assegnato a un tier
+
+**Regole di business**
+
+* Quando l'orchestra pubblica un annuncio, il sistema cerca il roster compatibile (strumento + ruolo)
+* Le notifiche partono **solo** ai musicisti del **Livello 1**
+* Ogni livello ha una **finestra temporale** (`WindowHours`) configurata dall'orchestra
+* Allo scadere della finestra senza che la posizione sia stata coperta, il sistema notifica automaticamente il **livello successivo**
+* La distribuzione procede in sequenza finché la lista non è esaurita
+* **Solo dopo** l'esaurimento della lista (tutti i livelli notificati + scaduti) la posizione viene aperta alle **candidature libere** (feed pubblico)
+* L'orchestra può decidere di aprire anticipatamente le candidature libere in qualsiasi momento
+
+**Import massivo da Excel**
+
+* L'orchestra può scaricare un **template Excel** precompilato (nome, cognome, email, strumento, livello)
+* L'upload del template compilato crea/aggiorna i musicisti nella lista
+* Il sistema valida le email, segnala duplicati e musicisti già presenti in piattaforma
+* I musicisti non ancora registrati ricevono un **invito a iscriversi**
+
+---
+
+## 3.4 Limiti di Ingaggio (Engagement Quota)
+
+Per evitare che i musicisti vengano contattati troppo frequentemente dalle stesse orchestre (fonte di lamentele nel settore), il sistema traccia i limiti di ingaggio.
+
+**Regole di business**
+
+* Per ogni coppia orchestra–musicista, il sistema conta i **giorni di ingaggio effettivi** in una finestra temporale mobile (default: ultimi 365 giorni)
+* L'orchestra configura una **soglia massima** di giorni di ingaggio per musicista (es. 90 giorni su 365)
+* Nella pipeline di selezione e nella lista prioritaria, i musicisti che si avvicinano o superano la soglia vengono evidenziati con un **indicatore visivo** (warning)
+* L'orchestra può **skippare** i musicisti a rischio di sovra-utilizzo durante la distribuzione sequenziale
+* Il conteggio include solo gli engagement completati o in corso (non quelli cancellati)
+* La soglia è configurabile per orchestra e opzionalmente per strumento/ruolo
+
+**Parametri configurabili**
+
+| Parametro | Default | Descrizione |
+|-----------|---------|-------------|
+| `quota_window_days` | 365 | Finestra temporale mobile in giorni |
+| `quota_max_engagement_days` | 90 | Giorni massimi di ingaggio nella finestra |
+| `quota_warning_threshold` | 80% | Percentuale della soglia oltre cui mostrare warning |
+
+---
+
 ## 4) Posizioni/Annunci (JobPost) — struttura completa
 
 **Informazioni base (MVP)**
@@ -192,7 +246,9 @@ Mettere in contatto **orchestre/direttori** con **musicisti** per coprire posizi
 
 ### JobPost
 
-* Draft → Published → InSelection → OfferSent → Filled/Closed → Archived
+* Draft → **Distributing** → Published → InSelection → OfferSent → Filled/Closed → Archived
+
+> **Distributing**: nuovo stato attivo durante la distribuzione sequenziale dalla lista prioritaria. Se l'orchestra non ha un roster compatibile, si salta direttamente a Published. Durante Distributing i musicisti dei livelli attivi possono già candidarsi e ricevere offerte.
 
 ### Application
 
@@ -239,7 +295,7 @@ Mettere in contatto **orchestre/direttori** con **musicisti** per coprire posizi
 
 ---
 
-### Flusso B — Pubblicazione posizione
+### Flusso B — Pubblicazione posizione e distribuzione sequenziale
 
 Orchestra → Dashboard → Nuova posizione (wizard)
 
@@ -248,10 +304,20 @@ Orchestra → Dashboard → Nuova posizione (wizard)
 * Step 3: requisiti + programma + allegati
 * Step 4: preview + pubblica (ora o programmata)
 
-Sistema:
+Sistema — **distribuzione a livelli dalla lista prioritaria**:
 
 * indicizza annuncio
-* invia notifiche a musicisti compatibili (hard match: strumento + date + area)
+* cerca il roster compatibile (strumento + ruolo) dell'orchestra
+* **Fase 1 — Distribuzione prioritaria (obbligatoria se roster presente)**:
+  * invia notifiche ai musicisti del **Livello 1** della lista prioritaria
+  * avvia **timer** per il Livello 1 (`WindowHours` configurato nel tier)
+  * i musicisti notificati possono candidarsi o rifiutare
+  * allo scadere del timer: se posizione non coperta → notifica **Livello 2**, avvia nuovo timer
+  * ripetere fino a esaurimento livelli
+  * durante la distribuzione, i musicisti vicini alla **soglia limite di ingaggio** vengono evidenziati con warning; l'orchestra può decidere di saltarli
+* **Fase 2 — Candidature aperte**:
+  * solo dopo l'esaurimento della lista (o decisione manuale dell'orchestra), l'annuncio diventa visibile nel feed pubblico
+  * invia notifiche a musicisti compatibili (hard match: strumento + date + area)
 
 ---
 
@@ -388,6 +454,10 @@ Mostra "Perché consigliato": 3–5 motivi (trasparenza).
 
 **Eventi principali**
 
+* **invito da lista prioritaria** (musicista — notifica livello con scadenza timer)
+* **avanzamento livello lista prioritaria** (orchestra — notifica passaggio al livello successivo)
+* **apertura candidature libere** (musicisti compatibili — annuncio ora pubblico)
+* **warning limite ingaggio** (orchestra — musicista vicino alla soglia)
 * nuova posizione compatibile (musicista)
 * nuova candidatura (orchestra)
 * shortlist/view (musicista – opzionale)
@@ -484,6 +554,9 @@ Il sistema deve loggare obbligatoriamente i seguenti eventi:
 | **Recensioni** | ReviewCreated, ReviewDisputed, ReviewModerated |
 | **Utenti** | UserBanned, UserSuspended, UserReactivated |
 | **Verifiche** | VerificationApproved, VerificationRejected |
+| **Lista Prioritaria** | RosterCreated, TierNotified, TierExpired, OpenCandidacyActivated |
+| **Import Excel** | BulkImportStarted, BulkImportCompleted, BulkImportFailed |
+| **Limiti Ingaggio** | QuotaWarningTriggered, QuotaExceeded |
 
 ### Prevenzione Overbooking
 
@@ -543,6 +616,10 @@ Se una delle due condizioni non è soddisfatta:
 
 * account + ruoli + switch profilo
 * profili base + link/1 media + CV PDF
+* **liste prioritarie a livelli** (roster per strumento/ruolo, gestione tier)
+* **distribuzione sequenziale con timer** (notifiche per livello, apertura candidature aperte dopo esaurimento lista)
+* **import massivo da template Excel** (download template, upload, validazione, inviti)
+* **tracciamento limiti di ingaggio** (giorni per coppia orchestra/musicista, warning soglia)
 * jobpost + feed + candidatura
 * **filtri manuali** (NO ranking automatico)
 * pipeline manuale + offerta + accetta/rifiuta + timeout

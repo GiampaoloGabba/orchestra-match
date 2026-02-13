@@ -955,7 +955,155 @@ Acceptance Criteria:
 - [ ] Se rifiutata: motivo e possibilità di riprovare
 ```
 
-### Epic 14: Matching e Ranking (Release 2)
+### Epic 14: Lista Prioritaria e Distribuzione Sequenziale
+
+```
+US-14.1: Creazione Lista Prioritaria (Roster)
+Come orchestra
+Voglio creare una lista prioritaria di musicisti per strumento/ruolo
+Per avere un elenco ordinato da cui attingere obbligatoriamente
+
+Acceptance Criteria:
+- [ ] Creazione roster associato a strumento + ruolo (es. "Violino - Spalla")
+- [ ] Possibilità di creare roster generici (senza strumento specifico)
+- [ ] Lista roster con conteggio musicisti e livelli
+- [ ] Modifica e eliminazione roster (solo se non in uso da annunci attivi)
+- [ ] Un'orchestra può avere più roster (uno per combinazione strumento/ruolo)
+
+---
+
+US-14.2: Gestione Livelli (Tier)
+Come orchestra
+Voglio organizzare la lista in livelli di priorità
+Per contattare prima i musicisti preferiti
+
+Acceptance Criteria:
+- [ ] Aggiunta livelli al roster (Livello 1, 2, 3, ...)
+- [ ] Ogni livello ha un nome personalizzabile (es. "Prime parti", "Riserve")
+- [ ] Ogni livello ha una finestra temporale configurabile (WindowHours, default 48h)
+- [ ] Riordinamento livelli con drag & drop
+- [ ] Eliminazione livello (con conferma se contiene musicisti)
+
+---
+
+US-14.3: Gestione Musicisti nella Lista
+Come orchestra
+Voglio aggiungere e organizzare musicisti nei livelli
+Per definire l'ordine di contatto
+
+Acceptance Criteria:
+- [ ] Aggiunta musicista a un livello (ricerca per nome, strumento, o dalla rubrica)
+- [ ] Spostamento musicista tra livelli
+- [ ] Riordinamento musicisti dentro un livello (ordine di contatto)
+- [ ] Rimozione musicista da un livello
+- [ ] Note interne per ogni musicista nella lista
+- [ ] Indicatore visivo del limite di ingaggio (giorni usati / soglia)
+- [ ] Warning se il musicista è vicino o sopra la soglia di ingaggio
+- [ ] Un musicista può apparire in un solo livello per roster
+
+---
+
+US-14.4: Import Massivo da Excel
+Come orchestra
+Voglio importare musicisti nella lista tramite file Excel
+Per caricare velocemente l'elenco esistente
+
+Acceptance Criteria:
+- [ ] Pulsante "Scarica template Excel"
+- [ ] Template con colonne: Nome, Cognome, Email, Strumento, Variante, Ruolo, Livello, Note
+- [ ] Upload file Excel compilato (xlsx, max 5MB)
+- [ ] Validazione: formato email, campi obbligatori, livelli validi
+- [ ] Report errori: righe con problemi evidenziate con motivo
+- [ ] Musicisti già registrati in piattaforma vengono collegati automaticamente (match per email)
+- [ ] Musicisti non registrati: viene inviato un invito via email a iscriversi
+- [ ] Preview dei dati importati prima della conferma
+- [ ] Conferma import con riepilogo (aggiunti, aggiornati, errori, inviti inviati)
+- [ ] Evento registrato in AuditLog (BulkImportStarted, BulkImportCompleted)
+
+---
+
+US-14.5: Distribuzione Sequenziale Annuncio
+Come sistema
+Voglio distribuire l'annuncio seguendo la lista prioritaria
+Per rispettare l'ordine di priorità dell'orchestra
+
+Acceptance Criteria:
+- [ ] Alla pubblicazione, il sistema cerca il roster compatibile (strumento + ruolo dell'annuncio)
+- [ ] Se roster presente: l'annuncio NON appare nel feed pubblico
+- [ ] Notifica inviata ai musicisti del Livello 1 con indicazione "Sei stato selezionato dalla lista prioritaria"
+- [ ] Timer avviato per il Livello 1 (durata = WindowHours del tier)
+- [ ] Musicisti del Livello 1 possono: candidarsi, rifiutare, o non rispondere
+- [ ] Allo scadere del timer senza copertura completa: notifica Livello 2, nuovo timer
+- [ ] Ripetere fino a esaurimento livelli
+- [ ] L'orchestra riceve notifica ad ogni avanzamento di livello
+- [ ] Musicisti vicini alla soglia di ingaggio evidenziati nella lista (l'orchestra può saltarli)
+- [ ] L'orchestra può forzare l'apertura candidature libere in qualsiasi momento ("Apri a tutti")
+- [ ] Dopo esaurimento lista: annuncio visibile nel feed pubblico + notifiche standard
+- [ ] Lo stato del processo di distribuzione è visibile nella dashboard dell'annuncio (livello corrente, timer, risposte ricevute)
+
+---
+
+US-14.6: Dashboard Distribuzione
+Come orchestra
+Voglio monitorare lo stato della distribuzione prioritaria
+Per sapere a che punto è il processo
+
+Acceptance Criteria:
+- [ ] Vista dedicata per annuncio con distribuzione in corso
+- [ ] Per ogni livello: stato (in attesa / attivo / scaduto / completato / skippato), timer rimanente, musicisti notificati, risposte ricevute
+- [ ] Dettaglio risposte: candidato, accettato, rifiutato, nessuna risposta
+- [ ] Pulsante "Salta al livello successivo" (anticipa timer)
+- [ ] Pulsante "Apri candidature libere" (salta tutti i livelli rimanenti)
+- [ ] Cronologia distribuzione (log delle azioni)
+```
+
+### Epic 15: Limiti di Ingaggio (Engagement Quota)
+
+```
+US-15.1: Configurazione Limiti
+Come orchestra
+Voglio configurare i limiti di ingaggio per i musicisti
+Per evitare di contattare sempre gli stessi
+
+Acceptance Criteria:
+- [ ] Impostazioni orchestra: finestra temporale (default 365 giorni)
+- [ ] Impostazioni orchestra: soglia massima giorni di ingaggio (default 90)
+- [ ] Impostazioni orchestra: percentuale warning (default 80%)
+- [ ] Possibilità di impostare soglie diverse per strumento/ruolo (opzionale)
+- [ ] Salvataggio e applicazione immediata
+
+---
+
+US-15.2: Visualizzazione Limiti nella Pipeline
+Come orchestra
+Voglio vedere il livello di utilizzo dei musicisti nella selezione
+Per prendere decisioni informate
+
+Acceptance Criteria:
+- [ ] Nella lista candidati: badge con giorni di ingaggio usati / soglia (es. "72/90 giorni")
+- [ ] Colore indicatore: verde (< 60%), giallo (60-80%), arancione (80-100%), rosso (> 100%)
+- [ ] Tooltip con dettaglio: periodo, ingaggi passati, giorni totali
+- [ ] Nella lista prioritaria: stesse indicazioni visive per ogni musicista
+- [ ] Filtro "Nascondi musicisti sopra soglia" nella pipeline e nella lista prioritaria
+
+---
+
+US-15.3: Calcolo e Tracciamento
+Come sistema
+Voglio calcolare i giorni di ingaggio per coppia orchestra-musicista
+Per alimentare i limiti e i warning
+
+Acceptance Criteria:
+- [ ] Conteggio basato su engagement con status Completed o InProgress
+- [ ] Giorni calcolati dalla somma delle date eventi (JobPostEvents) degli engagement
+- [ ] Finestra temporale mobile (ultimi N giorni dalla data corrente)
+- [ ] Esclusione engagement cancellati
+- [ ] Ricalcolo periodico (daily) o on-demand
+- [ ] Warning inviato all'orchestra quando un musicista supera la soglia di warning
+- [ ] Evento registrato in AuditLog (QuotaWarningTriggered, QuotaExceeded)
+```
+
+### Epic 16: Matching e Ranking (Release 2)
 
 > **Nota**: Questa epic è prevista per **Release 2**, non MVP.
 > L'MVP usa solo filtri manuali senza ranking automatico.
@@ -964,7 +1112,7 @@ Acceptance Criteria:
 > Va rivisto e validato con dati reali prima del rilascio in produzione.
 
 ```
-US-14.1: Calcolo match score
+US-16.1: Calcolo match score
 Come sistema
 Voglio calcolare un punteggio di compatibilità musicista-posizione
 Per aiutare le orchestre nella selezione
@@ -993,7 +1141,7 @@ Acceptance Criteria:
 
 ---
 
-US-14.2: Spiegabilità match
+US-16.2: Spiegabilità match
 Come orchestra
 Voglio capire perché un candidato ha un certo score
 Per prendere decisioni informate
@@ -1006,7 +1154,7 @@ Acceptance Criteria:
 
 ---
 
-US-14.3: Ordinamento candidati
+US-16.3: Ordinamento candidati
 Come orchestra
 Voglio vedere i candidati ordinati per compatibilità
 Per valutare prima i più adatti
@@ -1031,6 +1179,13 @@ Acceptance Criteria:
             │       │             │
             │       └──────┬──────┘
             │              │ publish()
+            │              ▼
+            │       ┌───────────────┐
+            │       │               │
+            │       │ Distributing  │ (distribuzione sequenziale dalla lista prioritaria)
+            │       │               │ (se roster presente; altrimenti salta a Published)
+            │       └──────┬────────┘
+            │              │ listExhausted() || forceOpen()
             │              ▼
             │       ┌─────────────┐
             │       │             │
@@ -1074,6 +1229,9 @@ Acceptance Criteria:
                     └─────────────┘
 
 Note: Da qualsiasi stato (eccetto Archived) si può andare a Closed con close()
+Note: Lo stato "Distributing" è attivo solo se l'orchestra ha un roster compatibile.
+      Durante Distributing le candidature dai livelli della lista possono già generare offerte.
+      Se un'offerta viene accettata durante Distributing e copre tutte le posizioni → Filled.
 ```
 
 ### Application States
@@ -1227,7 +1385,7 @@ Note:
 
 **JobPost - Scheduled Publish:**
 - Draft può avere `ScheduledPublishAt` valorizzato
-- Transizione automatica: `Draft → Published` quando il tempo raggiunge ScheduledPublishAt
+- Transizione automatica: `Draft → Distributing` (se roster compatibile) o `Draft → Published` (se no roster) quando il tempo raggiunge ScheduledPublishAt
 
 **Permessi sulle transizioni:**
 - `publish/close/archive/sendOffer` consentite solo se `OrchestraMembers.Status=Active`
@@ -1254,19 +1412,28 @@ flowchart TD
   H --> I
 ```
 
-### Pubblicazione Annuncio (Visibilità + Scheduling)
+### Pubblicazione Annuncio (con Distribuzione Prioritaria)
 
 ```mermaid
 flowchart TD
   A[Nuova Posizione] --> B[Compila dettagli]
   B --> C[Imposta Visibility: Public / InviteOnly]
   C --> D{Pubblicazione}
-  D -- Pubblica ora --> E[Status=Published, PublishedAt=now]
+  D -- Pubblica ora --> E0{Roster compatibile?}
   D -- Programma --> F[Status=Draft, ScheduledPublishAt=...]
-  E --> G[Notifiche ai musicisti compatibili]
   F --> H[Scheduler job]
-  H --> I[Quando ScheduledPublishAt scatta -> Published]
-  I --> G
+  H --> I[Quando ScheduledPublishAt scatta]
+  I --> E0
+  E0 -- Sì --> DIST[Status=Distributing]
+  DIST --> T1[Notifica Livello 1 + avvia timer]
+  T1 --> T2{Posizione coperta\no timer scaduto?}
+  T2 -- Coperta --> FILL[Filled]
+  T2 -- Timer scaduto --> T3{Altri livelli?}
+  T3 -- Sì --> T4[Notifica livello N+1]
+  T4 --> T2
+  T3 -- No --> PUB[Status=Published]
+  E0 -- No --> PUB
+  PUB --> G[Notifiche ai musicisti compatibili - feed pubblico]
 ```
 
 ### Accesso Annuncio InviteOnly
@@ -1326,6 +1493,52 @@ flowchart TD
   H -- Confermato --> E
   H -- Revocato --> I[NoShowStatus=Reversed\nReliabilityEvent: reversed]
   H -- Parziale --> J[ReliabilityEvent: partial]
+```
+
+### Distribuzione Sequenziale da Lista Prioritaria
+
+```mermaid
+flowchart TD
+  A[Orchestra pubblica annuncio] --> B{Roster compatibile\nesiste?}
+  B -- No --> Z[Annuncio visibile nel feed pubblico]
+  B -- Sì --> C[Annuncio NON nel feed pubblico]
+  C --> D[Notifica musicisti Livello 1]
+  D --> E[Avvia timer Livello 1]
+  E --> F{Posizione coperta?}
+  F -- Sì --> G[Distribuzione completata]
+  F -- No --> H{Timer scaduto?}
+  H -- No --> I{Orchestra forza\napertura?}
+  I -- No --> F
+  I -- Sì --> Z
+  H -- Sì --> J{Altri livelli\ndisponibili?}
+  J -- Sì --> K[Notifica musicisti Livello N+1]
+  K --> L[Avvia timer Livello N+1]
+  L --> F
+  J -- No --> M[Lista esaurita]
+  M --> Z
+  Z --> N[Notifiche a musicisti compatibili]
+```
+
+### Import Massivo da Excel
+
+```mermaid
+flowchart TD
+  A[Orchestra scarica template Excel] --> B[Compila template con musicisti]
+  B --> C[Upload file Excel]
+  C --> D[Validazione dati]
+  D --> E{Errori?}
+  E -- Sì --> F[Report errori + correzione]
+  F --> C
+  E -- No --> G[Preview dati importati]
+  G --> H{Conferma import?}
+  H -- No --> I[Annulla]
+  H -- Sì --> J[Processo import]
+  J --> K{Musicista registrato?}
+  K -- Sì --> L[Collegamento automatico]
+  K -- No --> M[Invio invito email]
+  L --> N[Aggiunta al livello roster]
+  M --> N
+  N --> O[Riepilogo: aggiunti / aggiornati / inviti]
 ```
 
 ### Flusso Candidatura Completo
@@ -1449,6 +1662,18 @@ erDiagram
 
     Engagements ||--o{ ReliabilityEvents : "generates"
 
+    OrchestraProfiles ||--o{ PriorityRosters : "owns"
+    PriorityRosters ||--o{ PriorityRosterTiers : "has_tiers"
+    PriorityRosterTiers ||--o{ PriorityRosterMembers : "has_members"
+    PriorityRosterMembers ||--o| MusicianProfiles : "references"
+
+    JobPosts ||--o| JobPostDistribution : "distributed_via"
+    JobPostDistribution ||--o{ JobPostDistributionTiers : "tracks_tiers"
+    PriorityRosters ||--o{ JobPostDistribution : "used_for"
+
+    OrchestraProfiles ||--o{ EngagementQuotaConfig : "configures"
+    OrchestraProfiles ||--o{ BulkImports : "imports"
+
     OrchestraMembers {
         uuid Id PK
         uuid OrchestraProfileId FK
@@ -1479,6 +1704,55 @@ erDiagram
         int RequestedLevel
         string Status
         uuid ReviewedByUserId FK
+    }
+
+    PriorityRosters {
+        uuid Id PK
+        uuid OrchestraProfileId FK
+        uuid InstrumentId FK
+        string Role
+        string Name
+    }
+
+    PriorityRosterTiers {
+        uuid Id PK
+        uuid RosterId FK
+        int TierLevel
+        string Name
+        int WindowHours
+    }
+
+    PriorityRosterMembers {
+        uuid Id PK
+        uuid TierId FK
+        uuid MusicianProfileId FK
+        string ExternalEmail
+        string ExternalFirstName
+        string ExternalLastName
+    }
+
+    JobPostDistribution {
+        uuid Id PK
+        uuid JobPostId FK
+        uuid RosterId FK
+        int CurrentTierLevel
+        string Status
+    }
+
+    EngagementQuotaConfig {
+        uuid Id PK
+        uuid OrchestraProfileId FK
+        int WindowDays
+        int MaxEngagementDays
+        int WarningThresholdPct
+    }
+
+    BulkImports {
+        uuid Id PK
+        uuid OrchestraProfileId FK
+        uuid RosterId FK
+        string Status
+        int TotalRows
     }
 ```
 
@@ -1698,6 +1972,148 @@ CREATE INDEX idx_orchestra_members_user ON OrchestraMembers(UserId);
 CREATE INDEX idx_orchestra_members_orchestra ON OrchestraMembers(OrchestraProfileId);
 
 -- =====================================================
+-- PRIORITY ROSTER (Liste Prioritarie)
+-- =====================================================
+
+CREATE TABLE PriorityRosters (
+    Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    OrchestraProfileId UUID NOT NULL REFERENCES OrchestraProfiles(ProfileId) ON DELETE CASCADE,
+
+    -- Filtro strumento/ruolo (opzionale: roster generico se NULL)
+    InstrumentId UUID REFERENCES Instruments(Id),
+    VariantId UUID REFERENCES InstrumentVariants(Id),
+    Role VARCHAR(50), -- 'section','principal','soloist','concertmaster'
+
+    Name VARCHAR(200) NOT NULL, -- es. "Violini - Prime parti"
+    Description TEXT,
+
+    CreatedAt TIMESTAMP NOT NULL DEFAULT NOW(),
+    UpdatedAt TIMESTAMP,
+    DeletedAt TIMESTAMP -- Soft delete
+);
+
+CREATE INDEX idx_priority_rosters_orchestra ON PriorityRosters(OrchestraProfileId);
+
+CREATE TABLE PriorityRosterTiers (
+    Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    RosterId UUID NOT NULL REFERENCES PriorityRosters(Id) ON DELETE CASCADE,
+
+    TierLevel INT NOT NULL, -- 1, 2, 3, ... (ordine di priorità)
+    Name VARCHAR(100), -- es. "Prima scelta", "Riserve"
+    WindowHours INT NOT NULL DEFAULT 48, -- Finestra temporale per questo livello
+
+    SortOrder INT NOT NULL,
+    CreatedAt TIMESTAMP NOT NULL DEFAULT NOW(),
+
+    UNIQUE(RosterId, TierLevel)
+);
+
+CREATE TABLE PriorityRosterMembers (
+    Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    TierId UUID NOT NULL REFERENCES PriorityRosterTiers(Id) ON DELETE CASCADE,
+    MusicianProfileId UUID REFERENCES MusicianProfiles(ProfileId), -- NULL se non ancora registrato
+
+    -- Dati per musicisti non ancora registrati (da import Excel)
+    ExternalEmail VARCHAR(255),
+    ExternalFirstName VARCHAR(100),
+    ExternalLastName VARCHAR(100),
+    InvitationSentAt TIMESTAMP, -- Data invito a iscriversi
+    InvitationAcceptedAt TIMESTAMP,
+
+    Note TEXT, -- Note interne dell'orchestra
+    SortOrder INT NOT NULL DEFAULT 0, -- Ordine dentro il tier
+
+    CreatedAt TIMESTAMP NOT NULL DEFAULT NOW(),
+    DeletedAt TIMESTAMP -- Soft delete
+);
+
+CREATE INDEX idx_roster_members_tier ON PriorityRosterMembers(TierId);
+CREATE INDEX idx_roster_members_musician ON PriorityRosterMembers(MusicianProfileId);
+
+-- Tracciamento distribuzione sequenziale per annuncio
+CREATE TABLE JobPostDistribution (
+    Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    JobPostId UUID NOT NULL REFERENCES JobPosts(Id) ON DELETE CASCADE,
+    RosterId UUID NOT NULL REFERENCES PriorityRosters(Id),
+
+    CurrentTierLevel INT NOT NULL DEFAULT 1, -- Livello attualmente attivo
+    Status VARCHAR(30) NOT NULL DEFAULT 'InProgress', -- InProgress, Completed, Aborted
+
+    StartedAt TIMESTAMP NOT NULL DEFAULT NOW(),
+    CompletedAt TIMESTAMP,
+    AbortedAt TIMESTAMP, -- Se l'orchestra forza apertura candidature libere
+    OpenCandidacyAt TIMESTAMP -- Quando le candidature libere sono state aperte
+);
+
+CREATE TABLE JobPostDistributionTiers (
+    Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    DistributionId UUID NOT NULL REFERENCES JobPostDistribution(Id) ON DELETE CASCADE,
+    TierId UUID NOT NULL REFERENCES PriorityRosterTiers(Id),
+
+    TierLevel INT NOT NULL,
+    Status VARCHAR(30) NOT NULL DEFAULT 'Pending', -- Pending, Active, Expired, Completed, Skipped
+
+    NotifiedAt TIMESTAMP, -- Quando le notifiche sono partite
+    ExpiresAt TIMESTAMP, -- Scadenza timer
+    CompletedAt TIMESTAMP,
+
+    MembersNotified INT DEFAULT 0,
+    ResponsesReceived INT DEFAULT 0,
+    ApplicationsReceived INT DEFAULT 0
+);
+
+-- =====================================================
+-- ENGAGEMENT QUOTA (Limiti di Ingaggio)
+-- =====================================================
+
+CREATE TABLE EngagementQuotaConfig (
+    Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    OrchestraProfileId UUID NOT NULL REFERENCES OrchestraProfiles(ProfileId) ON DELETE CASCADE,
+
+    -- Filtro opzionale per strumento/ruolo
+    InstrumentId UUID REFERENCES Instruments(Id), -- NULL = configurazione globale orchestra
+    Role VARCHAR(50), -- NULL = tutti i ruoli
+
+    WindowDays INT NOT NULL DEFAULT 365, -- Finestra temporale mobile (giorni)
+    MaxEngagementDays INT NOT NULL DEFAULT 90, -- Giorni massimi di ingaggio nella finestra
+    WarningThresholdPct INT NOT NULL DEFAULT 80, -- Percentuale warning (80 = 80%)
+
+    CreatedAt TIMESTAMP NOT NULL DEFAULT NOW(),
+    UpdatedAt TIMESTAMP
+);
+
+CREATE INDEX idx_engagement_quota_orchestra ON EngagementQuotaConfig(OrchestraProfileId);
+
+-- Vista calcolata: giorni di ingaggio effettivi per coppia orchestra-musicista
+-- EngagementDaysUsed = SUM(giorni di eventi da JobPostEvents per engagement completati/in corso nella finestra)
+
+-- =====================================================
+-- BULK IMPORT (Import massivo Excel)
+-- =====================================================
+
+CREATE TABLE BulkImports (
+    Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    OrchestraProfileId UUID NOT NULL REFERENCES OrchestraProfiles(ProfileId),
+    RosterId UUID NOT NULL REFERENCES PriorityRosters(Id),
+
+    FileName VARCHAR(255) NOT NULL,
+    FileUrl VARCHAR(500) NOT NULL,
+
+    Status VARCHAR(30) NOT NULL DEFAULT 'Pending', -- Pending, Processing, Completed, Failed
+
+    TotalRows INT,
+    SuccessRows INT DEFAULT 0,
+    ErrorRows INT DEFAULT 0,
+    InvitationsSent INT DEFAULT 0,
+
+    ErrorReport TEXT, -- JSON con dettaglio errori per riga
+
+    CreatedAt TIMESTAMP NOT NULL DEFAULT NOW(),
+    CompletedAt TIMESTAMP,
+    CreatedByUserId UUID REFERENCES Users(Id)
+);
+
+-- =====================================================
 -- JOB POSTS
 -- =====================================================
 
@@ -1710,7 +2126,7 @@ CREATE TABLE JobPosts (
 
     -- Status management
     Status VARCHAR(30) NOT NULL DEFAULT 'Draft',
-    -- Draft, Published, InSelection, OfferSent, Filled, Closed, Archived
+    -- Draft, Distributing, Published, InSelection, OfferSent, Filled, Closed, Archived
 
     -- Visibilità e scheduling
     Visibility VARCHAR(20) NOT NULL DEFAULT 'Public', -- Public, InviteOnly
@@ -2511,6 +2927,58 @@ POST   /api/verification/request   # Richiedi verifica livello successivo
        # Body: { documentUrls: string[] }
 ```
 
+### Priority Roster (Liste Prioritarie)
+
+```
+# Roster
+GET    /api/orchestras/{id}/rosters              # Lista roster dell'orchestra
+POST   /api/orchestras/{id}/rosters              # Crea roster
+GET    /api/rosters/{id}                         # Dettaglio roster con tiers e membri
+PUT    /api/rosters/{id}                         # Modifica roster
+DELETE /api/rosters/{id}                         # Elimina roster
+
+# Tiers (livelli)
+POST   /api/rosters/{id}/tiers                   # Aggiungi livello
+PUT    /api/rosters/{id}/tiers/{tierId}          # Modifica livello (nome, windowHours)
+DELETE /api/rosters/{id}/tiers/{tierId}          # Elimina livello
+PUT    /api/rosters/{id}/tiers/reorder           # Riordina livelli
+
+# Members (musicisti nella lista)
+POST   /api/tiers/{tierId}/members               # Aggiungi musicista al livello
+PUT    /api/tiers/{tierId}/members/{memberId}    # Modifica (note, ordine)
+DELETE /api/tiers/{tierId}/members/{memberId}    # Rimuovi musicista
+POST   /api/tiers/{tierId}/members/{memberId}/move  # Sposta a un altro tier
+       # Body: { targetTierId: uuid }
+PUT    /api/tiers/{tierId}/members/reorder       # Riordina musicisti nel livello
+
+# Import Excel
+GET    /api/rosters/{id}/import/template         # Download template Excel
+POST   /api/rosters/{id}/import                  # Upload Excel compilato (multipart/form-data)
+GET    /api/rosters/{id}/import/{importId}       # Stato e report import
+POST   /api/rosters/{id}/import/{importId}/confirm  # Conferma import dopo preview
+
+# Distribuzione
+GET    /api/job-posts/{id}/distribution          # Stato distribuzione corrente
+POST   /api/job-posts/{id}/distribution/skip-tier    # Salta al livello successivo
+POST   /api/job-posts/{id}/distribution/open-all     # Apri candidature libere
+```
+
+### Engagement Quota (Limiti di Ingaggio)
+
+```
+# Configurazione
+GET    /api/orchestras/{id}/quota-config         # Configurazione limiti
+PUT    /api/orchestras/{id}/quota-config         # Aggiorna configurazione
+       # Body: { windowDays, maxEngagementDays, warningThresholdPct, instrumentId?, role? }
+
+# Consultazione
+GET    /api/orchestras/{id}/quota/musician/{musicianId}
+       # Ritorna: { daysUsed, maxDays, windowDays, percentage, isWarning, isExceeded, engagements[] }
+GET    /api/orchestras/{id}/quota/summary
+       # Ritorna lista musicisti con usage (per la dashboard)
+       # Query: ?sortBy=usage&filter=warning|exceeded
+```
+
 ### Search
 
 ```
@@ -2650,7 +3118,12 @@ Logica di risoluzione contesto:
    - CRUD annunci (senza matching)
 
 5. **MVP Sprint 2** (2-3 settimane):
-   - Candidatura
-   - Gestione candidature
+   - **Liste prioritarie a livelli** (roster, tier, membri)
+   - **Import massivo da template Excel**
+   - **Distribuzione sequenziale con timer**
+
+6. **MVP Sprint 3** (2-3 settimane):
+   - Candidatura + candidature aperte post-distribuzione
+   - Gestione candidature con **indicatori limiti di ingaggio**
    - Proposta/accettazione
-   - Notifiche base
+   - Notifiche base (incluse notifiche distribuzione per livello)
